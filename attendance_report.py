@@ -6,25 +6,43 @@
 
 import pandas as pd
 
-def main(attendance_report_path: str, output_path: str, output_name: str):
+def gen_attendance_report(attendance_report_path: str, output_path: str, output_name: str):
+    """
+    Generates attendance scores from a Zoom meeting report
+    """
+
     # load data
     df = pd.read_csv(attendance_report_path)
-    df = df[["User Email", "Join time"]]
+    df = df[["User Name", "User Email", "Join time"]]
 
     df["Join time"] = pd.to_datetime(df["Join time"])
 
-    # drop duplicates keeping min join time
-    df = df.sort_values("Join time").drop_duplicates("email", keep="first")
-
     # check who came before 17:05
-    df["before_1705"] = df["Join time"] < pd.to_datetime("17:05:00")
+    df["Join time"] = df["Join time"].apply(lambda x: x.time())
+    df["day_month_year"] = df["Join time"].dt.date
+    df["before_1705"] = df["Join time"].apply(lambda time_var: int(time_var < pd.to_datetime("18:05:00").time()))
 
-    # base score on join time
-    df["score"] = df["Join time"].apply(lambda x: 1 if x < pd.to_datetime("17:05:00") else 0)
+    # email split
+    # keep obs if User Email is not empty
+    email_df = df[df["User Email"].notnull()]
+
+    # drop duplicates keeping min join time
+    email_df = email_df.sort_values("Join time").drop_duplicates("User Email", keep="first")
+    
+    # export to csv using gradebook template format
+    df.to_csv(output_path + "/" + output_name + ".csv", index=False)
+    
+    # name split
+    # keep obs if User Email is empty
+    name_df = df[~df["User Email"].notnull()]
+
+    # drop duplicates keeping min join time
+    name_df = name_df.sort_values("Join time").drop_duplicates("User Name", keep="first")
 
     # export to csv using gradebook template format
-    df.to_csv(output_path + "/" + output_name + "csv", index=False)
+    df = pd.concat([email_df, name_df])
+    pd.to_csv(output_path + "/" + output_name + ".csv", index=False)
 
 
 if __name__ == "__main__":
-    main("C:\Users\Gigabyte\Desktop\zoomus_meeting_report_93025893520.csv", "D:\Accesos directos\Trabajo\UVA\Projects\misc_tools", "attendance_report")
+    gen_attendance_report(r"C:\Users\Gigabyte\Desktop\zoomus_meeting_report_93025893520.csv", r"D:\Accesos directos\Trabajo\UVA\Projects\misc_tools", "attendance_report")

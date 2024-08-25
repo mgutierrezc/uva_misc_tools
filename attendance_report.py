@@ -35,13 +35,12 @@ def gen_attendance_report(template_path: str, attendance_report_path: str, outpu
 
     # drop duplicates keeping min join time
     name_df = name_df.sort_values("Join time").drop_duplicates("User Name", keep="first")
-
     
     ### merge w template
     template = pd.read_csv(template_path)
 
     ## finding cols w missing values and that contain "Participation" in their name
-    missing_cols = template.columns[template.isnull().any()]
+    missing_cols = template.columns[template.iloc[1:].isnull().all()]
     participation_cols = template.columns[template.columns.str.contains("Participation")]
     cols_to_fill = list(missing_cols.intersection(participation_cols))
     print("missing cols: ", missing_cols)

@@ -1,10 +1,5 @@
-# 1. Keep email and join time
-# 2. Drop duplicates keeping Min join time
-# 3. Check who came before 17:05
-# 4. Base score on join time
-# 5. Export to csv using Gradebook template format
-
 import pandas as pd
+import json
 
 def gen_attendance_report(template_path: str, attendance_report_path: str, output_path: str, output_name: str):
     """
@@ -43,9 +38,6 @@ def gen_attendance_report(template_path: str, attendance_report_path: str, outpu
     missing_cols = template.columns[template.iloc[1:].isnull().all()]
     participation_cols = template.columns[template.columns.str.contains("Participation")]
     cols_to_fill = list(missing_cols.intersection(participation_cols))
-    print("missing cols: ", missing_cols)
-    print("participation cols: ", participation_cols)
-    print("cols to fill: ", cols_to_fill)
 
     ## filling missing values
     ## email df
@@ -86,5 +78,14 @@ def gen_attendance_report(template_path: str, attendance_report_path: str, outpu
 
 
 if __name__ == "__main__":
-    # gen_attendance_report(r"C:\Users\Gigabyte\Desktop\2024-08-19T2039_Grades-DS_5001-001.csv", r"C:\Users\Gigabyte\Desktop\zoomus_meeting_report_93025893520.csv", r"D:\Accesos directos\Trabajo\UVA\Projects\misc_tools", "attendance_report")
-    gen_attendance_report(r"D:\Accesos directos\Trabajo\UVA\Projects\misc_tools\attendance_report.csv", r"C:\Users\Gigabyte\Desktop\zoomus_meeting_report_93025893520.csv", r"D:\Accesos directos\Trabajo\UVA\Projects\misc_tools", "attendance_report_2")
+    # read parameters from json
+    with open("parameters.json") as file:
+        config = json.load(file)
+
+    template_path = config['template_path']
+    attendance_report_path = config['attendance_report_path']
+    output_path = config['output_path']
+    output_name = config['output_name']
+
+    gen_attendance_report(template_path, attendance_report_path, output_path, output_name)
+    # gen_attendance_report(r"D:\Accesos directos\Trabajo\UVA\Projects\misc_tools\attendance_report.csv", r"C:\Users\Gigabyte\Desktop\zoomus_meeting_report_93025893520.csv", r"D:\Accesos directos\Trabajo\UVA\Projects\misc_tools", "attendance_report_2")
